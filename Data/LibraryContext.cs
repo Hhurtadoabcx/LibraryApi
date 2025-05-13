@@ -10,6 +10,7 @@ namespace LibraryApi.Data
         public DbSet<Book> Books { get; set; }
         public DbSet<Member> Members { get; set; }
         public DbSet<Loan> Loans { get; set; }
+        public DbSet<Admin> Admins { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -20,6 +21,11 @@ namespace LibraryApi.Data
             modelBuilder.Entity<Member>()
                 .HasIndex(m => m.Email)
                 .IsUnique();
+
+            modelBuilder.Entity<Admin>()
+                .HasIndex(a => a.Username)
+                .IsUnique();
         }
     }
+
 }

@@ -1,4 +1,6 @@
 using LibraryApi.Data;
+using LibraryApi.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,6 +22,27 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 var app = builder.Build();
+
+
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<LibraryContext>();
+
+    if (!context.Admins.Any())
+    {
+        var hasher = new PasswordHasher<string>();
+        var passwordHash = hasher.HashPassword(null, "admin123");
+
+        var admin = new Admin
+        {
+            Username = "admin",
+            PasswordHash = passwordHash
+        };
+
+        context.Admins.Add(admin);
+        context.SaveChanges();
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
