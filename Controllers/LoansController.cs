@@ -143,5 +143,30 @@ namespace LibraryApi.Controllers
 
             return Ok("Devolución registrada correctamente");
         }
+        [HttpGet("member/{memberId}")]
+        public async Task<ActionResult<IEnumerable<object>>> GetLoansByMember(int memberId)
+        {
+            // Validación mejorada
+            if (memberId <= 0) return BadRequest("ID de miembro inválido");
+
+            var memberExists = await _context.Members.AnyAsync(m => m.MemberId == memberId);
+            if (!memberExists) return NotFound("Miembro no encontrado");
+
+            var loans = await _context.Loans
+                .Include(l => l.Book)
+                .Where(l => l.MemberId == memberId)
+                .Select(l => new
+                {
+                    l.LoanId,
+                    l.BookId,
+                    l.Book.Title,
+                    l.LoanDate,
+                    l.ReturnDate
+                })
+                .ToListAsync();
+
+            return Ok(loans);
+        }
+
     }
 }

@@ -39,22 +39,46 @@ namespace LibraryApi.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateMember(int id, Member member)
+        public async Task<IActionResult> UpdateMember(int id, [FromBody] Member updatedMember)
         {
-            if (id != member.MemberId) return BadRequest();
-
-            _context.Entry(member).State = EntityState.Modified;
             try
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!MemberExists(id)) return NotFound();
-                throw;
-            }
+                var existingMember = await _context.Members.FindAsync(id);
+                if (existingMember == null) return NotFound();
 
-            return NoContent();
+                // Validar modelo manualmente
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(new ValidationProblemDetails(ModelState));
+                }
+
+                // Actualizar solo los campos permitidos
+                existingMember.Name = updatedMember.Name;
+                existingMember.Email = updatedMember.Email;
+                existingMember.CI = updatedMember.CI;
+                existingMember.PhoneNumber = updatedMember.PhoneNumber;
+
+                await _context.SaveChangesAsync();
+                return NoContent();
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                return StatusCode(500, new ProblemDetails
+                {
+                    Title = "Error de concurrencia",
+                    Detail = ex.Message,
+                    Status = 500
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Error al actualizar",
+                    Detail = ex.Message,
+                    Status = 400
+                });
+            }
         }
 
         [HttpDelete("{id}")]

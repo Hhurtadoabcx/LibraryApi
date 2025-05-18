@@ -25,13 +25,13 @@ namespace LibraryApi.Controllers
                 .FirstOrDefaultAsync(a => a.Username == loginDto.Username);
 
             if (admin == null)
-                return Unauthorized("Usuario no encontrado.");
+                return Unauthorized(new { message = "Usuario no encontrado." });
 
-            bool passwordValid = PasswordHelper.VerifyPassword(loginDto.Password, admin.PasswordHash);
+            bool passwordValid = PasswordHelper.VerifyPassword(admin.PasswordHash, loginDto.Password);
             if (!passwordValid)
-                return Unauthorized("Contraseña incorrecta.");
+                return Unauthorized(new { message = "Contraseña incorrecta." });
 
-            return Ok("Inicio de sesión exitoso");
+            return Ok(new { message = "Inicio de sesión exitoso" });
         }
     }
 }
